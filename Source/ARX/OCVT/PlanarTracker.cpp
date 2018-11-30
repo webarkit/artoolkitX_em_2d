@@ -429,17 +429,17 @@ public:
     {
         //std::cout << "Building pyramid" << std::endl;
         BuildImagePyramid(frame);
-        //std::cout << "Drawing detected markers to mask" << std::endl;
+        // std::cout << "Drawing detected markers to mask" << std::endl;
         if(CanDetectNewFeatures()) {
-            //std::cout << "Detecting new features" << std::endl;
             cv::Mat detectionFrame;
             cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
             cv::Mat featureMask = CreateFeatureMask(detectionFrame);
-            std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectFeatures(detectionFrame, featureMask);
-            
+            // std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectFeatures(detectionFrame, featureMask);
+            cv::Mat newFrameDescriptors;
+            std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectAndCompute(detectionFrame, featureMask, newFrameDescriptors);
             if(CanMatchNewFeatures(static_cast<int>(newFrameFeatures.size()))) {
-                //std::cout << "Matching new features" << std::endl;
-                cv::Mat newFrameDescriptors = _featureDetector.CalcDescriptors(detectionFrame, newFrameFeatures);
+                // std::cout << "Matching new features" << newFrameDescriptors << std::endl;
+                // cv::Mat newFrameDescriptors = _featureDetector.CalcDescriptors(detectionFrame, newFrameFeatures);
                 MatchFeatures(newFrameFeatures, newFrameDescriptors);
             }
         }
@@ -587,10 +587,9 @@ public:
             newTrackable._width = newTrackable._image.cols;
             newTrackable._height = newTrackable._image.rows;
             std::cout << "Add Marker DetectFeatures" << std::endl;
-            // After this it crashes
-            newTrackable._featurePoints = _featureDetector.DetectFeatures(newTrackable._image, cv::Mat());
+            newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::Mat(), newTrackable._descriptors);
             std::cout << "Add Marker CalcDescriptors" << std::endl;
-            newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
+            // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             std::cout << "Add Marker FindCorners" << std::endl;
             newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
             newTrackable._bBox.push_back(cv::Point2f(0,0));
@@ -617,8 +616,9 @@ public:
             newTrackable._scale = scale;
             newTrackable._width = newTrackable._image.cols;
             newTrackable._height = newTrackable._image.rows;
-            newTrackable._featurePoints = _featureDetector.DetectFeatures(newTrackable._image, cv::Mat());
-            newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
+            newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::Mat(), newTrackable._descriptors);
+            // newTrackable._featurePoints = _featureDetector.DetectFeatures(newTrackable._image, cv::Mat());
+            // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
             newTrackable._bBox.push_back(cv::Point2f(0,0));
             newTrackable._bBox.push_back(cv::Point2f(newTrackable._width, 0));
@@ -665,7 +665,12 @@ public:
         cv::Mat rvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output rotation vector
         cv::Mat tvec = cv::Mat::zeros(3, 1, CV_64FC1);          // output translation vector
         
-        cv::solvePnP(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+        // --llvm-lto 1 compiler setting breaks the solvePnPRansac function on iOS but using the solvePnP function is faster anyways
+        #if ARX_TARGET_PLATFORM_EMSCRIPTEN
+          cv::solvePnP(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+        #else
+          cv::solvePnPRansac(objPts, imgPts, _K, cv::Mat(), rvec, tvec);
+        #endif
         cv::Mat rMat;
         Rodrigues(rvec,rMat);
         cv::hconcat(rMat,tvec, pose);
