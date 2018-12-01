@@ -95,7 +95,7 @@ bool OCVFeatureDetector::AddDescriptorsToDictionary(int id, cv::Mat descriptors)
     return false;
 }
 
-std::vector<cv::KeyPoint> OCVFeatureDetector::DetectAndCompute(cv::Mat frame, cv::Mat mask, cv::Mat &desc) {
+std::vector<cv::KeyPoint> OCVFeatureDetector::DetectAndCompute(cv::UMat frame, cv::UMat mask, cv::Mat &desc) {
   std::vector<cv::KeyPoint> kp;
   _featureDetector->detectAndCompute(frame, mask, kp, desc);
   return kp;

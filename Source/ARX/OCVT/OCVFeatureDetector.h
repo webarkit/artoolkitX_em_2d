@@ -51,7 +51,7 @@ public:
     
     bool AddDescriptorsToDictionary(int id, cv::Mat descriptors);
     
-    std::vector<cv::KeyPoint> DetectAndCompute(cv::Mat frame, cv::Mat mask, cv::Mat &desc);
+    std::vector<cv::KeyPoint> DetectAndCompute(cv::UMat frame, cv::UMat mask, cv::Mat &desc);
         
     std::vector< std::vector<cv::DMatch> >  MatchFeatures(cv::Mat first_desc, cv::Mat desc);
     

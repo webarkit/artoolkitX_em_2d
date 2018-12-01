@@ -45,7 +45,7 @@ HarrisDetector::HarrisDetector()
     _termcrit = cv::TermCriteria(cv::TermCriteria::COUNT|cv::TermCriteria::EPS,20,0.03);
 }
     
-std::vector<cv::Point2f> HarrisDetector::FindCorners(cv::Mat gray)
+std::vector<cv::Point2f> HarrisDetector::FindCorners(cv::UMat gray)
 {
     cv::Mat mask = cv::Mat::zeros(gray.size(), CV_8UC1);
     cv::Rect innerRegion(harrisBorder,harrisBorder,gray.cols-(harrisBorder*2), gray.rows-(harrisBorder*2));

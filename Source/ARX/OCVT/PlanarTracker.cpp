@@ -94,14 +94,14 @@ public:
         }
     }
     
-    cv::Mat CreateFeatureMask(cv::Mat frame)
+    cv::UMat CreateFeatureMask(cv::UMat frame)
     {
-        cv::Mat featureMask;
+        cv::UMat featureMask;
         for(int i=0;i<_trackables.size(); i++) {
             if(_trackables[i]._isDetected) {
                 if(featureMask.empty()) {
                     //Only create mask if we have something to draw in it.
-                    featureMask = cv::Mat::ones(frame.size(), CV_8UC1);
+                    featureMask = cv::UMat::ones(frame.size(), CV_8UC1);
                 }
                 std::vector<std::vector<cv::Point> > contours(1);
                 for(int j=0; j<4; j++) {
@@ -295,18 +295,18 @@ public:
         return testVertexPoints;
     }
     
-    cv::Mat MatchTemplateToImage(cv::Mat searchImage, cv::Mat warpedTemplate)
+    cv::UMat MatchTemplateToImage(cv::UMat searchImage, cv::UMat warpedTemplate)
     {
         int result_cols =  searchImage.cols - warpedTemplate.cols + 1;
         int result_rows = searchImage.rows - warpedTemplate.rows + 1;
         if((result_cols>0)&&(result_rows>0)) {
-            cv::Mat result;
+            cv::UMat result;
             result.create( result_rows, result_cols, CV_32FC1 );
             
             double minVal; double maxVal;
             minMaxLoc( warpedTemplate, &minVal, &maxVal, 0, 0, cv::Mat() );
             
-            cv::Mat normSeatchROI;
+            cv::UMat normSeatchROI;
             normalize( searchImage, normSeatchROI, minVal, maxVal, cv::NORM_MINMAX, -1, cv::Mat() );
             /// Do the Matching and Normalize
             matchTemplate( normSeatchROI, warpedTemplate, result, match_method );
@@ -314,11 +314,11 @@ public:
         }
         else {
             //std::cout << "Results image too small" << std::endl;
-            return cv::Mat();
+            return cv::UMat();
         }
     }
     
-    void RunTemplateMatching(cv::Mat frame, int trackableId)
+    void RunTemplateMatching(cv::UMat frame, int trackableId)
     {
         //std::cout << "Starting template match" << std::endl;
         std::vector<cv::Point2f> finalTemplatePoints, finalTemplateMatchPoints;
@@ -359,17 +359,17 @@ public:
                             templateBoundingBox = templateBoundingBox & markerRoi;
                             
                             if((templateBoundingBox.area() > 0) &&(searchROI.area() > templateBoundingBox.area())) {
-                                cv::Mat searchImage = frame(searchROI);
-                                cv::Mat templateImage = _trackables[trackableId]._image(templateBoundingBox);
-                                cv::Mat warpedTemplate;
+                                cv::UMat searchImage = frame(searchROI);
+                                cv::UMat templateImage = _trackables[trackableId]._image(templateBoundingBox);
+                                cv::UMat warpedTemplate;
                                 
                                 warpPerspective(templateImage, warpedTemplate, templateHomography, srcBoundingBox.size());
-                                cv::Mat matchResult =  MatchTemplateToImage(searchImage, warpedTemplate);
+                                cv::UMat matchResult =  MatchTemplateToImage(searchImage, warpedTemplate);
                                 
                                 if(!matchResult.empty()) {
                                     double minVal; double maxVal;
                                     cv::Point minLoc, maxLoc, matchLoc;
-                                    minMaxLoc( matchResult, &minVal, &maxVal, &minLoc, &maxLoc, cv::Mat() );
+                                    minMaxLoc( matchResult, &minVal, &maxVal, &minLoc, &maxLoc, cv::UMat() );
                                     if(minVal<0.5) {
                                         matchLoc = minLoc;
                                         matchLoc.x+=searchROI.x + (warpedTemplate.cols/2);
@@ -397,7 +397,7 @@ public:
         }
     }
     
-    void BuildImagePyramid(cv::Mat frame)
+    void BuildImagePyramid(cv::UMat frame)
     {
         cv::buildOpticalFlowPyramid(frame, _pyramid, winSize, maxLevel);
     }
@@ -413,8 +413,8 @@ public:
         // Convert it to Gray
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
           cv::Mat colorFrame(_frameSizeY, _frameSizeX, CV_8UC4, frame);
-          cv::Mat grayFrame(_frameSizeY, _frameSizeX, CV_8UC1);
-          cv::cvtColor(colorFrame, grayFrame, cv::COLOR_RGBA2GRAY);
+          cv::UMat grayFrame(_frameSizeY, _frameSizeX, CV_8UC1);
+          cv::cvtColor(colorFrame.getUMat(cv::ACCESS_RW), grayFrame, cv::COLOR_RGBA2GRAY);
           ProcessFrame(grayFrame);
           grayFrame.release();
         #else 
@@ -425,15 +425,15 @@ public:
 
     }
     
-    void ProcessFrame(cv::Mat frame)
+    void ProcessFrame(cv::UMat frame)
     {
         //std::cout << "Building pyramid" << std::endl;
         BuildImagePyramid(frame);
         // std::cout << "Drawing detected markers to mask" << std::endl;
         if(CanDetectNewFeatures()) {
-            cv::Mat detectionFrame;
+            cv::UMat detectionFrame;
             cv::pyrDown(frame, detectionFrame, cv::Size(frame.cols/featureDetectPyramidLevel, frame.rows/featureDetectPyramidLevel));
-            cv::Mat featureMask = CreateFeatureMask(detectionFrame);
+            cv::UMat featureMask = CreateFeatureMask(detectionFrame);
             // std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectFeatures(detectionFrame, featureMask);
             cv::Mat newFrameDescriptors;
             std::vector<cv::KeyPoint> newFrameFeatures = _featureDetector.DetectAndCompute(detectionFrame, featureMask, newFrameDescriptors);
@@ -498,7 +498,7 @@ public:
                     fs << "trackableId" + index << _trackables[i]._id;
                     fs << "trackableFileName" + index << _trackables[i]._fileName;
                     fs << "trackableScale" + index << _trackables[i]._scale;
-                    fs << "trackableImage" + index << _trackables[i]._image;
+                    fs << "trackableImage" + index << _trackables[i]._image.getMat(cv::ACCESS_RW);
                     fs << "trackableWidth" + index << _trackables[i]._width;
                     fs << "trackableHeight" + index << _trackables[i]._height;
                     fs << "trackableDescriptors" + index << _trackables[i]._descriptors;
@@ -537,7 +537,8 @@ public:
                     fs["trackableId" + index] >> newTrackable._id;
                     fs["trackableFileName" + index] >> newTrackable._fileName;
                     fs["trackableScale" + index] >> newTrackable._scale;
-                    fs["trackableImage" + index] >> newTrackable._image;
+                    cv::Mat image = newTrackable._image.getMat(cv::ACCESS_RW);
+                    fs["trackableImage" + index] >> image;
                     fs["trackableWidth" + index] >> newTrackable._width;
                     fs["trackableHeight" + index] >> newTrackable._height;
                     fs["trackableDescriptors" + index] >> newTrackable._descriptors;
@@ -573,11 +574,11 @@ public:
         #if ARX_TARGET_PLATFORM_EMSCRIPTEN
           std::cout << "Add Marker EM" << std::endl;
           cv::Mat colorImage(height, width, CV_8UC4, buff);
-          cv::Mat grayImage(_frameSizeY, _frameSizeX, CV_8UC1);
-          cv::cvtColor(colorImage, grayImage, cv::COLOR_RGBA2GRAY);
+          cv::UMat grayImage(_frameSizeY, _frameSizeX, CV_8UC1);
+          cv::cvtColor(colorImage.getUMat(cv::ACCESS_RW), grayImage, cv::COLOR_RGBA2GRAY);
           newTrackable._image = grayImage;
         #else 
-          newTrackable._image = cv::Mat(height, width, CV_8UC1, buff);
+          newTrackable._image = cv::Mat(height, width, CV_8UC1, buff).getUMat();
         #endif
         std::cout << "Add Marker _image" << std::endl;
         if(!newTrackable._image.empty()) {
@@ -587,7 +588,7 @@ public:
             newTrackable._width = newTrackable._image.cols;
             newTrackable._height = newTrackable._image.rows;
             std::cout << "Add Marker DetectFeatures" << std::endl;
-            newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::Mat(), newTrackable._descriptors);
+            newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::UMat(), newTrackable._descriptors);
             std::cout << "Add Marker CalcDescriptors" << std::endl;
             // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             std::cout << "Add Marker FindCorners" << std::endl;
@@ -609,14 +610,14 @@ public:
     void AddMarker(std::string imageName, int uid, float scale)
     {
         TrackableInfo newTrackable;
-        newTrackable._image = cv::imread(imageName, 0);
+        newTrackable._image = cv::imread(imageName, 0).getUMat(cv::ACCESS_RW);
         if(!newTrackable._image.empty()) {
             newTrackable._id = uid;
             newTrackable._fileName = imageName;
             newTrackable._scale = scale;
             newTrackable._width = newTrackable._image.cols;
             newTrackable._height = newTrackable._image.rows;
-            newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::Mat(), newTrackable._descriptors);
+            newTrackable._featurePoints = _featureDetector.DetectAndCompute(newTrackable._image, cv::UMat(), newTrackable._descriptors);
             // newTrackable._featurePoints = _featureDetector.DetectFeatures(newTrackable._image, cv::Mat());
             // newTrackable._descriptors = _featureDetector.CalcDescriptors(newTrackable._image, newTrackable._featurePoints);
             newTrackable._cornerPoints = _harrisDetector.FindCorners(newTrackable._image);
@@ -711,7 +712,7 @@ public:
                 info.uid = _trackables[i]._id;
                 info.scale = _trackables[i]._scale;
                 info.fileName = _trackables[i]._fileName;
-                info.imageData = std::make_shared<uchar *>(_trackables[i]._image.ptr());
+                info.imageData = std::make_shared<uchar *>(_trackables[i]._image.getMat(cv::ACCESS_READ).ptr());
                 info.width = _trackables[i]._width;
                 info.height = _trackables[i]._height;
                 info.fileName = _trackables[i]._fileName;

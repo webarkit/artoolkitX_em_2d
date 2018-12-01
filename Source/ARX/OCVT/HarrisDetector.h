@@ -50,7 +50,7 @@ private:
 public:
     HarrisDetector();
     
-    std::vector<cv::Point2f> FindCorners(cv::Mat gray);
+    std::vector<cv::Point2f> FindCorners(cv::UMat gray);
 };
 
 #endif

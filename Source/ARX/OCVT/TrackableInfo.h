@@ -46,7 +46,7 @@ class TrackableInfo
 public:
     int _id;
     float _scale;
-    cv::Mat _image;
+    cv::UMat _image;
     std::vector<cv::Point2f> _points;
     int _width;
     int _height;
