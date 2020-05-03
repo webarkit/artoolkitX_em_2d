@@ -1,3 +1,7 @@
+# This version of artoolkitX is optimized for the web with Emscripten
+It allows for jpgs to be loaded as trackables. The tracking and detection relies on a special version of OpenCV which I have compiled to JS using Emscripten. This is not equal to opencv.js because at the time I did it opencv.js didn't have solvePnP available. (Not sure if they already have that)
+
+
 # Read me for artoolkitX
 
 ## Build state
