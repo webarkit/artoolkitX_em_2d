@@ -144,7 +144,7 @@ endif()
 
 # Configuration defaults.
 if (ARX_TARGET_PLATFORM_EMSCRIPTEN)
-    set(HAVE_NFT 0)
+    set(HAVE_NFT 1)
     set(HAVE_2D 1)
 else()
     set(HAVE_NFT 1)

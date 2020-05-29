@@ -13,7 +13,7 @@ add_definitions("-std=c++11")
 set(OPENCV_EM "../../depends/emscripten/build_opencv-em")
 
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/../ARX ${CMAKE_CURRENT_BINARY_DIR}/../ARX/AR ${CMAKE_CURRENT_BINARY_DIR}/../ARX/ARUtil ${CMAKE_CURRENT_BINARY_DIR}/../ARX/AR2 ${CMAKE_CURRENT_BINARY_DIR}/../ARX/KPM ${CMAKE_CURRENT_BINARY_DIR}/../ARX/ARVideo ${CMAKE_CURRENT_BINARY_DIR}/../ARX/ARG ${CMAKE_CURRENT_BINARY_DIR}/../ARX/OCVT ${CMAKE_CURRENT_BINARY_DIR}/${OPENCV_EM}/lib ${CMAKE_CURRENT_BINARY_DIR}/${OPENCV_EM}/3rdparty/lib)
-link_libraries(libARX libARVideo libAR libARG libARUtil libOCVT libopencv_highgui libopencv_imgcodecs libopencv_videoio libopencv_calib3d libopencv_features2d libopencv_flann libopencv_imgproc libopencv_video libopencv_core libpng libjpeg libwebp libprotobuf IlmImf zlib)
+link_libraries(libARX libARVideo libAR libARG libARUtil libAR2 libKPM libOCVT libopencv_highgui libopencv_imgcodecs libopencv_videoio libopencv_calib3d libopencv_features2d libopencv_flann libopencv_imgproc libopencv_video libopencv_core libpng libjpeg libwebp libprotobuf IlmImf zlib)
 add_executable(artoolkitx ${PROJECT_SOURCE_DIR}/artoolkitx.js/ARX_js.cpp ${PROJECT_SOURCE_DIR}/artoolkitx.js/ARX_bindings.cpp)
 
 set(EXPORT_FUNCTIONS "'_arwUpdateAR', '_arwCapture', '_arwGetProjectionMatrix', '_arwQueryTrackableVisibilityAndTransformation', '_arwGetTrackablePatternConfig', '_arwGetTrackablePatternImage', '_arwLoadOpticalParams'")

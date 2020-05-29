@@ -1,5 +1,11 @@
 if(NOT ARX_TARGET_PLATFORM_WINDOWS)
-	find_package(JPEG REQUIRED)
+  if (ARX_TARGET_PLATFORM_EMSCRIPTEN)
+    set(JPEG_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/depends/emscripten/libjpeg/includes)
+
+    set(JPEG_LIBRARIES ${PROJECT_SOURCE_DIR}/depends/emscripten/libjpeg/)
+  else()
+    find_package(JPEG REQUIRED)
+  endif()
 else()
 	find_path(JPEG_INCLUDE_DIR
 		NAMES jconfig.h jmorecfg.h jpeglib.h jversion.h
