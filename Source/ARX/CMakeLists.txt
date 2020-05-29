@@ -123,6 +123,9 @@ set(SOURCE
     ARVideoView.cpp
     trackingSub.h
     trackingSub.c
+    trackingMod.h
+    trackingMod.c
+    trackingMod2d.c
 )
 
 add_library(ARX ${ARX_LIBRARY_STYLE}

@@ -42,7 +42,7 @@
 
 #if HAVE_NFT
 #include <ARX/ARTrackableNFT.h>
-#include "trackingSub.h"
+#include "trackingMod.h"
 
 ARTrackerNFT::ARTrackerNFT() :
     m_videoSourceIsStereo(false),
@@ -89,7 +89,7 @@ bool ARTrackerNFT::start(ARParamLT *paramLT, AR_PIXEL_FORMAT pixelFormat)
     //kpmSetProcMode( m_kpmHandle, KpmProcHalfSize );
     
     // AR2 init.
-    if (!(m_ar2Handle = ar2CreateHandle(paramLT, AR_PIXEL_FORMAT_MONO, AR2_TRACKING_DEFAULT_THREAD_NUM))) { // Since we're guaranteed to have luma available, we'll use it as it is the optimal case.
+    if (!(m_ar2Handle = ar2CreateHandleMod(paramLT, AR_PIXEL_FORMAT_MONO, AR2_TRACKING_DEFAULT_THREAD_NUM))) { // Since we're guaranteed to have luma available, we'll use it as it is the optimal case.
         ARLOGe("ar2CreateHandle\n");
         kpmDeleteHandle(&m_kpmHandle);
         return (false);
