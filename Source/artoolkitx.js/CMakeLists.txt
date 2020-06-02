@@ -25,7 +25,7 @@ set(MEM 16777216) #This is default value
 message("CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 set(MEMORY "-s TOTAL_MEMORY=${MEM} -s ALLOW_MEMORY_GROWTH=1")
 
-set(WASM_LOADER "--pre-js ${PROJECT_SOURCE_DIR}/artoolkitx.js/ARX_wasmLoader.js")
+# set(WASM_LOADER "--pre-js ${PROJECT_SOURCE_DIR}/artoolkitx.js/ARX_wasmLoader.js")
 #To generate source maps the -g4 needs to be passed to the LINK_FLAGS
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     # https://github.com/kripken/emscripten/blob/master/src/settings.js#L85
@@ -38,7 +38,7 @@ else()
     # If WASM add a pre-js to register the wasm loader
 endif()
 
-# set(OPTIMIZE_OPTIONS "-s NO_EXIT_RUNTIME=1 -s INVOKE_RUN=0")
+set(OPTIMIZE_OPTIONS "-s NO_EXIT_RUNTIME=1 -s INVOKE_RUN=0 -s SINGLE_FILE=1")
 set_target_properties(artoolkitx PROPERTIES LINK_FLAGS "${OPTIMIZE_OPTIONS} ${MODULE_OPTIONS} ${NO_WASM} ${WASM_LOADER} ${MEMORY} ${DEBUG_EMCC} ${OPTIMIZE_EMCC} --bind --post-js ${PROJECT_SOURCE_DIR}/artoolkitx.js/ARX_additions.js -s EXPORTED_FUNCTIONS='[${EXPORT_FUNCTIONS}]' -s EXTRA_EXPORTED_RUNTIME_METHODS='[${EXPORTED_RUNTIME_FUNCTIONS}]'")
 
 if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
@@ -46,7 +46,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/artoolkitx.js
     DESTINATION ${PROJECT_SOURCE_DIR}/../SDK/lib
 )
 else()
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/artoolkitx.js ${CMAKE_CURRENT_BINARY_DIR}/artoolkitx.wasm
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/artoolkitx.js
     DESTINATION ${PROJECT_SOURCE_DIR}/../SDK/lib
 )
 endif()
